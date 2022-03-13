@@ -1,0 +1,271 @@
+﻿
+@model dynamic
+@{
+}
+<h1 class="text-primary">Categorias</h1>
+<div class="row">
+    <div class="col">
+        <button id="btn_nuevo" type="button" class="btn btn-primary">NUEVA</button>
+    </div>
+</div>
+<br />
+<table id="tableCategory" class="table table-dark">
+    <thead>
+        <tr>
+            <th scope="col">#</th>
+            <th scope="col">Id</th>
+            <th scope="col">Descripcion</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Usuario</th>
+            <th scope="col">Acciones</th>
+        </tr>
+    </thead>
+    <tbody id="bodyTable">
+        @{ int cont = 0;}
+        @foreach (var categoria in Model.categorias)
+        {
+            <tr id="@(cont)">
+                <th id="@categoria.id" scope="row">@(cont++)</th>
+                <td>@categoria.id</td>
+                <td>@categoria.descripcion</td>
+                <td>@categoria.fecha</td>
+                <td>@categoria.id_usuario</td>
+                <td>
+                    <a id ="btn-edit" idCategoria-btn-edit="@categoria.id" class="btn-info btn btn-sm">Editar</a>
+                </td>
+                <td>
+                    <a idCategoria-btn-delete="@categoria.id" class="btn-info btn btn-sm" >Eliminar</a>
+                </td>
+            </tr>
+
+        }
+    </tbody>
+    <tfoot cantidadCategorias="@cont">
+        <tr>
+            <td colspan="5">
+                <h2>TOTAL CATEGORIAS</h2>
+            </td>
+            <td>
+                <h2>@cont</h2>
+            </td>
+        </tr>
+    </tfoot>
+</table>
+<br />
+<h5 class="align-content-sm-center"> No hay categorias por mostrar</h5>
+<div id="modalCategory" class="modal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrar categoria</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input class="form-control" type="text" id="description" value="" />
+                <br />
+                <div id="container_alert" class="alert alert-warning alert-dismissible fade show" style="display:none;" role="alert">
+                    <div id="containerMessage"> </div>
+                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button id="btn_guardar" type="button" class="btn btn-primary">Guardar</button>
+                <button type="button" class="btn btn-secondary" data-d ismiss="modal">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts{
+
+    <script>
+        //const { data } = require("jquery");
+        window.cat = null;
+        window.categoriaNueva = null;
+
+       
+        $(document).ready(function () {
+
+            
+            var cont;
+            $(document).on("click", "#btn_nuevo", showModalCategory);
+            $(document).on("click", "#btn_guardar", createCategory);
+            $(document).on("click", "#btn-edit", loadCategory);
+            $(document).on("click", "#btn-eliminar", deleteCategory);
+
+                    });
+
+        function showModalCategory() {
+
+
+            $("#modalCategory").modal("show");
+
+         }
+
+
+                    function handlerResponse(data) {
+                        if (data.success) {
+                            console.log("guardo ", data);
+                        } 
+
+                    }
+
+
+             async function saveCategory(category) {
+
+                 var response = await $.ajax({
+                     method: "POST",
+                     url: `/Category/Create`,
+                     data: category,
+                     complete: tableUpdate
+
+                 });
+
+                 
+
+               
+               }
+
+            function createCategory() {
+
+                var descripcion = $("#description").val();
+                
+                if (descripcion != '') {
+                    if (window.cat == null) {
+                       
+                        var category = {
+                            id:0,
+                            descripcion: descripcion,
+                            fecha: new Date(),
+                            id_usuario: 1
+                        };
+                        window.categoriaNueva = category;
+
+                    saveCategory(category);
+                    } else {
+
+                        window.cat.descripcion = descripcion;
+                        saveCategory(window.cat);
+                      }
+
+                    } else {
+                $("#containerMessage").text("El campo esta vacio!!!");
+                $("#container_alert").show();
+                return false;
+            }
+
+            }
+
+            function updateCategory() {
+            $("#description").text()
+            }
+
+        function deleteCategory() {
+
+            var idCategory = $(this).attr("idCategory-btn-delete");
+
+            var response = $.ajax({
+                method: "GET",
+                url: `Category/Buscar/${idCategory}`,
+                complete: function (data) {
+                    $.ajax({
+                        method: "POST",
+                        url: `Category/delete/${data}`
+                    })
+                }
+            });
+
+            
+
+
+            }
+
+            async function loadCategory() {
+
+                var idCategory = $(this).attr("idCategoria-btn-edit");
+                var pos = $(`#${idCategory}`).text();
+                console.log("hizo click en ", idCategory);
+                console.log("y su posicion es :", pos);
+
+                await $.ajax({
+                    method: "GET",
+                    url: `/Category/Edit/${idCategory}`,
+                    success: function (data) {
+
+                        console.log(typeof (data.fecha));
+
+                        console.log(data.fecha);
+
+                      $("#description").val(data.descripcion);
+                        $("#modalCategory").modal("show");
+                        
+                       window.cat = {
+                           posi: pos,
+                           id: data.id,
+                           descripcion: data.descripcion,
+                           fecha: data.fecha,
+                           id_usuario: data.id_usuario
+                        };
+                    }
+
+                    });
+
+                //alert(window.cat.fecha);
+
+
+
+
+        }
+
+        function tableUpdate(data) {
+
+            $("#modalCategory").modal("hide");
+            var cantidadCategorias = $(this).attr("cantidadCategorias");
+            if (window.cat != null) {
+                $(`#${window.cat.posi}`).html(`
+              <th id ="${window.cat.id}" scope="row">${window.cat.posi}</th>
+              <td>${window.cat.id}</td>
+              <td>${window.cat.descripcion}</td >
+              <td>${window.cat.fecha}</td>
+              <td>${window.cat.id_usuario}</td>
+              <td>
+                    <a id ="btn-edit" idCategoria-btn-edit="${window.cat.id}" class="btn-info btn btn-sm">Editar</a>
+              </td>
+              <td>
+                    <a idCategoria="${window.cat.id}" class="btn-delete" >Eliminar</a>
+              </td>
+               `);
+
+                window.cat = null;
+
+            } else {
+                $("#bodyTable").append(`
+              <th id ="${window.categoriaNueva.id}" scope="row">${cantidadCategorias}</th>
+              <td>${window.categoriaNueva.id}</td>
+              <td>${window.categoriaNueva.descripcion}</window.categoriaNueva
+              <td>${window.categoriaNueva.fecha}</td>
+              <td>${window.categoriaNueva.id_usuario}</td>
+              <td>
+                    <a id ="btn-edit" idCategoria-btn-edit="${window.categoriaNueva.id}" class="btn-info btn btn-sm">Editar</a>
+              </td>
+              <td>
+                    <a idCategoria="${window.categoriaNueva.id}" class="btn-delete" >Eliminar</a>
+              </td>
+               `);
+
+
+            }
+        }
+           
+        
+
+
+
+    </script>
+
+}
