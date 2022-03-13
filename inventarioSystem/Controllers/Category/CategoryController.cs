@@ -80,11 +80,14 @@ namespace inventarioSystem.Controllers.Category
             //});
         }
 
-        public JsonResult Delete(Categoria cat)
+        public JsonResult Delete(int id)
         {
-            context.categoria.Remove(cat);
+            var category = context.categoria.Find(id);
+            context.categoria.Remove(category);
             context.SaveChanges();
-            return Json(new { success = true});
+            return Json(new {
+                success = true 
+            });
         }
 
         public JsonResult Buscar(int id)
