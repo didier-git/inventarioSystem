@@ -171,13 +171,15 @@
             
             var response = $.ajax({
                 method: "GET",
-                url: `Category/Delete/${idCategory}`,
-                complete: window.location.reload()
-                
+                url: `Category/Delete/${idCategory}`
             });
 
-            if (response.success == true) {
-                window.location.reload();
+            if (response.success === true) {
+                //window.location.reload();
+                $.ajax({
+                    method: "GET",
+                    url:"Category/Update"
+                });
             } else {
                 console.log("la peticion no ha sido exitosa");
             }
@@ -238,7 +240,7 @@
                     <a id ="btn-edit" idCategoria-btn-edit="${window.cat.id}" class="btn-info btn btn-sm">Editar</a>
               </td>
               <td>
-                    <a idCategoria="${window.cat.id}" class="btn-delete" >Eliminar</a>
+                    <a id="btn-delete" idCategoria="${window.cat.id}" class="btn-info btn btn-sm" >Eliminar</a>
               </td>
                `);
 
@@ -255,7 +257,7 @@
                     <a id ="btn-edit" idCategoria-btn-edit="${window.categoriaNueva.id}" class="btn-info btn btn-sm">Editar</a>
               </td>
               <td>
-                    <a idCategoria="${window.categoriaNueva.id}" class="btn-delete" >Eliminar</a>
+                    <a id ="btn-delete" idCategoria="${window.categoriaNueva.id}" class="btn-info btn btn-sm" >Eliminar</a>
               </td>
                `);
 
